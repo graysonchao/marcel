@@ -8,5 +8,15 @@ A bot for halite.io
 
 ### Running Tests
 ```bash
-python setup.py test
+sbt test
+```
+
+### Running a Game
+(Runs tests)
+```bash
+./runGame.sh
+```
+(Don't run tests)
+```bash
+./runGame.sh quick
 ```

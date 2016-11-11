@@ -7,10 +7,4 @@ install() {
     mv halite bin/
 }
 
-cleanup() {
-    rm -rf build dist *egg-info
-}
-
 install
-python setup.py install
-cleanup
