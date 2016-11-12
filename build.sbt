@@ -5,3 +5,10 @@ version := "1.0"
 scalaVersion := "2.12.0"
 
 libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value
+libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.21"
+libraryDependencies += "ch.qos.logback" % "logback-core" % "1.1.7"
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.7"
+
+// Package dependencies
+packAutoSettings
+//packMain := Map("MyBot" -> "slack.endofthe.marcel.MyBot")
