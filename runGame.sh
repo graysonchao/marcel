@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TARGET_DIR="target/scala-2.11/classes"
+TARGET_DIR="target/scala-2.12/classes"
 if [[ $OSTYPE == "darwin*" ]]; then
     JAVA_HOME=$(/usr/libexec/java_home)
 fi
