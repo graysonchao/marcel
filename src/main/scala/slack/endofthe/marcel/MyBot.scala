@@ -1,17 +1,18 @@
 package slack.endofthe.marcel
 
 import org.slf4j.{Logger, LoggerFactory}
-
-import slack.endofthe.marcel.Strategy._
+import slack.endofthe.marcel.Direction._
 
 /**
   * Created by snoe on 7/23/16.
   */
 class MyBot(id: Int, gameMap:GameMap) extends HaliteBot(id, gameMap) {
 
-  val log:Logger = LoggerFactory.getLogger("marcel");
+  val log:Logger = LoggerFactory.getLogger("marcel")
 
   override def name = "marcel"
+
+  case class HaliteUnit(location: Location, strength: Int)
 
   def myUnits(gameMap: GameMap): Stream[HaliteUnit] = {
     for {
@@ -24,7 +25,8 @@ class MyBot(id: Int, gameMap:GameMap) extends HaliteBot(id, gameMap) {
   }
 
   def move(unit: HaliteUnit): Move = {
-    val easyTargets = surroundingSquares(unit, gameMap)
+    val easyTargets = List[Direction](NORTH, EAST, SOUTH, WEST)
+      .map((dir) => (gameMap.getSite(unit.location, dir), dir))
       .filter((site) => site._1.strength < unit.strength)
       .filter((site) => site._1.owner != id)
 
@@ -47,7 +49,6 @@ class MyBot(id: Int, gameMap:GameMap) extends HaliteBot(id, gameMap) {
     })
     moves
   }
-
 }
 
 object MyBot {
