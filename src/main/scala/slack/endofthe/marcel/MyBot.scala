@@ -3,16 +3,15 @@ package slack.endofthe.marcel
 import org.slf4j.{Logger, LoggerFactory}
 import slack.endofthe.marcel.Direction._
 
-/**
-  * Created by snoe on 7/23/16.
-  */
+import scala.collection.mutable.HashMap
+
+case class HaliteUnit(location: Location, strength: Int, id: Int)
+
 class MyBot(id: Int, gameMap:GameMap) extends HaliteBot(id, gameMap) {
 
   val log:Logger = LoggerFactory.getLogger("marcel")
 
   override def name = "marcel"
-
-  case class HaliteUnit(location: Location, strength: Int)
 
   def myUnits(gameMap: GameMap): Stream[HaliteUnit] = {
     for {
@@ -21,31 +20,20 @@ class MyBot(id: Int, gameMap:GameMap) extends HaliteBot(id, gameMap) {
       location = new Location(x, y)
       site = gameMap.getSite(location)
       if site.owner == id
-    } yield HaliteUnit(location, site.strength)
+    } yield HaliteUnit(location, site.strength, id)
   }
 
-  def move(unit: HaliteUnit): Move = {
-    val easyTargets = List[Direction](NORTH, EAST, SOUTH, WEST)
-      .map((dir) => (gameMap.getSite(unit.location, dir), dir))
-      .filter((site) => site._1.strength < unit.strength)
-      .filter((site) => site._1.owner != id)
-
-    if (easyTargets.nonEmpty) {
-      val target = easyTargets.head
-      log.info(s"Found an easy target with strength ${target._1.strength}, mine is ${unit.strength}")
-      return new Move(unit.location, target._2)
+  def getObjective(unit: HaliteUnit): Objective = {
+    if (unit.strength > 150) {
+      return ReinforceBordersObjective
     }
-
-    new Move(unit.location, Direction.STILL)
+    TakeUnownedTerritoryObjective
   }
 
   override def takeTurn(turn:BigInt, gameMap:GameMap): MoveList = {
-    // Random moves
     val moves = new MoveList()
-    myUnits(gameMap).foreach(u => {
-      val m = move(u)
-      moves.add(m)
-      log.info(s"I'm moving the unit at (${u.location.x}, ${u.location.y}) in ${m.dir}")
+    myUnits(gameMap).foreach(unit => {
+      moves.add(getObjective(unit).nextMove(unit, gameMap))
     })
     moves
   }
