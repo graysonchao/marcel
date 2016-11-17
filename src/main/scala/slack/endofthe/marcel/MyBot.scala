@@ -4,7 +4,6 @@ import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
 
 import org.slf4j.{Logger, LoggerFactory}
-import rx.lang.scala.Observable
 import slack.endofthe.marcel.Direction._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -45,6 +44,7 @@ class MyBot(id: Int, gameMap:GameMap) extends HaliteBot(id, gameMap) {
         getObjective(unit).nextMove(unit, gameMap)
       })
 
+    // one issue with this is that the moves aren't ordered at all, we just churn through as many as we can
     val aggregated = Future.sequence(futures)
     val results = Await.result(aggregated, Duration(900,TimeUnit.MILLISECONDS))
     val moveList = new MoveList()
