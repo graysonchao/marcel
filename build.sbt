@@ -2,7 +2,7 @@ name := "marcel"
 
 version := "1.0"
 
-scalaVersion := "2.12.0"
+scalaVersion := "2.10.5"
 
 libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value
 libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.21"

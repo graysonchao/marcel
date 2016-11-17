@@ -1,9 +1,15 @@
 package slack.endofthe.marcel
 
+import java.util.concurrent.TimeUnit
+import java.util.stream.Collectors
+
 import org.slf4j.{Logger, LoggerFactory}
 import slack.endofthe.marcel.Direction._
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.mutable.HashMap
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
 case class HaliteUnit(location: Location, strength: Int, id: Int)
 
@@ -31,11 +37,26 @@ class MyBot(id: Int, gameMap:GameMap) extends HaliteBot(id, gameMap) {
   }
 
   override def takeTurn(turn:BigInt, gameMap:GameMap): MoveList = {
-    val moves = new MoveList()
-    myUnits(gameMap).foreach(unit => {
-      moves.add(getObjective(unit).nextMove(unit, gameMap))
-    })
-    moves
+
+    val start = System.currentTimeMillis()
+
+    val futures = myUnits(gameMap).map(unit => Future {
+        getObjective(unit).nextMove(unit, gameMap)
+      })
+
+    // one issue with this is that the moves aren't ordered at all, we just churn through as many as we can
+    val aggregated = Future.sequence(futures)
+    val results = Await.result(aggregated, Duration(900,TimeUnit.MILLISECONDS))
+    val moveList = new MoveList()
+    results.foreach( move => moveList.add(move) )
+
+    // need nicer profiling impl we're gonna need this kinda thing a lot
+    val end = System.currentTimeMillis()
+    val time = end - start
+    val moveCount = moveList.size()
+    log.info(s"Turn took $time :ms, generated $moveCount moves.")
+
+    return moveList
   }
 }
 
