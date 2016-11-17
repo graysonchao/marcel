@@ -9,7 +9,12 @@ import slack.endofthe.marcel.Direction._
 trait Objective {
   // Return the next move to make
   def nextMove(unit: HaliteUnit, gameMap: GameMap):Move
-  //def combinations(other: Objective)
+
+  // Override this if your objective has a better idea.
+  // In general, needs to stay fast so we don't time out.
+  def defaultMove(unit: HaliteUnit, gameMap: GameMap):Move = {
+    new Move(unit.location, STILL)
+  }
 }
 
 object TakeUnownedTerritoryObjective extends Objective {
