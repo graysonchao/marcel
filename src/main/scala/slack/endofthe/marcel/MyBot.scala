@@ -1,15 +1,12 @@
 package slack.endofthe.marcel
 
 import java.util.concurrent.TimeUnit
-import java.util.stream.Collectors
 
 import org.slf4j.{Logger, LoggerFactory}
-import slack.endofthe.marcel.Direction._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.collection.mutable.HashMap
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await, Future, TimeoutException}
 
 case class HaliteUnit(location: Location, strength: Int, id: Int)
 
@@ -42,13 +39,15 @@ class MyBot(id: Int, gameMap:GameMap) extends HaliteBot(id, gameMap) {
 
     val futures = myUnits(gameMap).map(unit => Future {
         getObjective(unit).nextMove(unit, gameMap)
+      } recover {
+        case ex: TimeoutException => getObjective(unit).defaultMove(unit, gameMap)
       })
 
     // one issue with this is that the moves aren't ordered at all, we just churn through as many as we can
     val aggregated = Future.sequence(futures)
-    val results = Await.result(aggregated, Duration(900,TimeUnit.MILLISECONDS))
+    val moves = Await.result(aggregated, Duration(900,TimeUnit.MILLISECONDS))
     val moveList = new MoveList()
-    results.foreach( move => moveList.add(move) )
+    moves.foreach(moveList.add)
 
     // need nicer profiling impl we're gonna need this kinda thing a lot
     val end = System.currentTimeMillis()
