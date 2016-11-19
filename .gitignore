@@ -1,6 +1,6 @@
 halite
 # Game log files
-*.log
+log/*.log
 
 *.class
 *.hlt

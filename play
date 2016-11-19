@@ -1,0 +1,64 @@
+#!/bin/bash
+
+usage() {
+    echo "Usage: $0 [-t|-c|-n|-d|-h]
+
+    -t: run tests
+    -c: clean build
+    -n: no build step
+    -d: board size ex.: (\"30 30\") 
+        (passed directly to ./bin/halite)
+    -h: show this message"
+}
+
+tests="false"
+clean="false"
+tail_logs="false"
+no_build="false"
+dimensions="30 30"
+
+while getopts "htcn" opt; do
+    case $opt in
+        h)
+            usage
+            exit
+            ;;
+        t) 
+            tests="true"
+            ;;
+        c)
+            clean="true"
+            ;;
+        n)
+            no_build="true"
+            ;;
+        d)
+            dimensions=${OPTARG}
+    esac
+done
+shift $((OPTIND-1))
+
+if [ "$tests" == "true" ] ; then
+    echo "$0: running tests"
+    sbt test
+fi
+
+if [ "$clean" == "true" ] ; then
+    echo "$0: cleaning old logs"
+    rm log/marcel_*.log 2>/dev/null
+    rm log/1-*.log 2>/dev/null
+    rm log/2-*.log 2>/dev/null
+fi
+
+if [ "$no_build" == true ] ; then
+    echo "$0: not building project"
+else
+    echo "$0: building project"
+    sbt clean compile
+fi
+
+classpath="target/pack/lib/*"
+echo "$0: packaging dependencies in $classpath"
+sbt pack
+
+./bin/halite -d "$dimensions" "scala -cp \"$classpath\" slack.endofthe.marcel.MyBot" "scala -cp \"$classpath\" slack.endofthe.marcel.RandomBot"
